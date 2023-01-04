@@ -11,20 +11,93 @@ from pandas_datareader import data as pdr
 import datetime as dt
 import yfinance as yf
 from matplotlib.pyplot import figure
+import pandas_ta as ta
 
 pd.options.mode.chained_assignment = None  # default='warn' 
 plt.style.use('default')   #styl wykresów
 
 
 #1 Zmienne 
-start = dt.datetime(2018,2,1)   #Początek badanego zakresu danych
+start = dt.datetime(2000,2,1)   #Początek badanego zakresu danych
 end = dt.datetime(2023,9,6)   #Koniec badanego zakresu danych
 rsi_lenght = 14 #Argument rsi (dla ilu okresów badane)
+min_rsi = 30
+max_rsi = 70
 
 #2 Wczytanie danych z yahoo
 company = ["^GSPC"]  #ticker z https://finance.yahoo.com/
 
 yf.pdr_override()
-df=pdr.get_data_yahoo(company, start, end)
+df = pdr.get_data_yahoo(company, start, end)  #Stworzenie df z danych 
+df.reset_index(inplace=True)  #Resetuje indeksy ( i je tworzy)
+
+
+#3 Obliczanie wskaźnika RSI
+df['Rsi']=ta.rsi(df["Close"], length=rsi_lenght) #RSI
+
+#4 Strategia RSI
+"""Zakup aktywów za cenę Close, gdy w danym dniu RSI było mniejsze niż 30.
+sprzedaż aktywów, gdy RSI>70. Inwestujemy za każdym razem stałą kwotę. Zysk wyrażony
+zostanie w procentach (procent skumulowany zysków i strat ze wszystkich tranzakcji"""
+
+
+trans = []
+trans_sum = [0]
+buy = 0
+sell = 0
+sell_dates = []
+close = []
+
+for i in range(len(df)):
+    if df['Rsi'][i]<30 and buy==0:# Kupno
+        buy = df['Close'][i]
+        
+    elif df['Rsi'][i]>70 and buy!=0: # Sprzedaż 
+        sell = df['Close'][i]
+        
+        profit = ((sell - buy)/buy) * 100  # profit wyrażony w procentach    
+        trans.append(profit) # lista profitóW
+        trans_sum.append(trans_sum[-1]+profit) # dodaje profit do listy skumulowanych profitów 
+        sell_dates.append(df['Date'][i]) #dodaje datę do listy dat
+        close.append(df["Close"][i])
+        buy = 0 # resetuje wartosc buy
+
+#5 Interpretacja wyników
+
+print(trans_sum[-1]) #drukuje procent skumulowany
+
+
+trans_sum.pop(0)  
+# create figure and axis objects with subplots()
+fig,ax = plt.subplots()
+
+
+# make a plot
+ax.plot(sell_dates,trans_sum,
+        color="red", 
+        marker="o")
+# set x-axis label
+ax.set_xlabel("data", fontsize = 14)
+plt.xticks(rotation=90)
+# set y-axis label
+ax.set_ylabel("zysk [%]",
+              color="red",
+              fontsize=14)
+
+plt.grid("y")
+
+
+
+# twin object for two different y-axis on the sample plot
+ax2=ax.twinx()
+# make a plot with different y-axis using second axis object
+ax2.plot(sell_dates, close,color="blue",marker="o")
+ax2.set_ylabel("Close",color="blue",fontsize=14)
+plt.title(company[0])
+
+plt.savefig(company[0]+'.png') #zapisuje wykres
+
+
+plt.show()
 
 
