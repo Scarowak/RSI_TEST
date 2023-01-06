@@ -42,62 +42,58 @@ zostanie w procentach (procent skumulowany zysków i strat ze wszystkich tranzak
 
 
 trans = []
-trans_sum = [0]
+trans_sum = [0]  
 buy = 0
 sell = 0
 sell_dates = []
 close = []
 
 for i in range(len(df)):
-    if df['Rsi'][i]<30 and buy==0:# Kupno
+    if df['Rsi'][i]<30 and buy==0: #Kupno
         buy = df['Close'][i]
         
-    elif df['Rsi'][i]>70 and buy!=0: # Sprzedaż 
+    elif df['Rsi'][i]>70 and buy!=0: #Sprzedaż 
         sell = df['Close'][i]
         
-        profit = ((sell - buy)/buy) * 100  # profit wyrażony w procentach    
-        trans.append(profit) # lista profitóW
-        trans_sum.append(trans_sum[-1]+profit) # dodaje profit do listy skumulowanych profitów 
+        profit = ((sell - buy)/buy) * 100  #Profit wyrażony w procentach    
+        trans.append(profit) #lista profitóW
+        trans_sum.append(trans_sum[-1]+profit) #dodaje profit do listy skumulowanych profitów 
         sell_dates.append(df['Date'][i]) #dodaje datę do listy dat
         close.append(df["Close"][i])
-        buy = 0 # resetuje wartosc buy
+        buy = 0 #resetuje wartosc buy
+
 
 #5 Interpretacja wyników
 
 print(trans_sum[-1]) #drukuje procent skumulowany
 
 
-trans_sum.pop(0)  
-# create figure and axis objects with subplots()
-fig,ax = plt.subplots()
+trans_sum.pop(0) #usuwa pierwszą (zerową) pozycję z listy procentu skomulowanego
+
+fig,ax = plt.subplots() # Umożliwia stworzenie wykresu z dwoma osiami Y
 
 
-# make a plot
-ax.plot(sell_dates,trans_sum,
-        color="red", 
-        marker="o")
-# set x-axis label
-ax.set_xlabel("data", fontsize = 14)
-plt.xticks(rotation=90)
-# set y-axis label
-ax.set_ylabel("zysk [%]",
-              color="red",
-              fontsize=14)
-
-plt.grid("y")
+ax.plot(sell_dates,trans_sum, color="red", marker="o") #tworzy wykres zysku skumulowanego
 
 
+ax.set_xlabel("data", fontsize = 14) # Tytuł osi X
 
-# twin object for two different y-axis on the sample plot
-ax2=ax.twinx()
-# make a plot with different y-axis using second axis object
-ax2.plot(sell_dates, close,color="blue",marker="o")
-ax2.set_ylabel("Close",color="blue",fontsize=14)
-plt.title(company[0])
+plt.xticks(rotation=90) #obraca podpisy osi X o 90 stopni
 
-plt.savefig(company[0]+'.png') #zapisuje wykres
+ax.set_ylabel("zysk [%]", color="red", fontsize=14) #Tworzy podpis osi Y
+
+plt.grid() #Tworzy siatkę na wykresie
 
 
-plt.show()
+ax2=ax.twinx()   #Tworzy drugą os Y
+
+ax2.plot(sell_dates, close,color="blue",marker="o") #Wykres dla drugiej osi, przedstawia ruch ceny wybranej spółki
+ax2.set_ylabel("Close",color="blue",fontsize=14) #Podpisuje os Y
+
+plt.title(company[0]) #Tytuł wykresu
+
+
+plt.savefig(company[0]+'.png') #Zapisuje wykres
+plt.show() #Pokazuje wykres
 
 
