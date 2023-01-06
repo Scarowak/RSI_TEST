@@ -25,7 +25,7 @@ min_rsi = 30
 max_rsi = 70
 
 #2 Wczytanie danych z yahoo
-company = ["^GSPC"]  #ticker z https://finance.yahoo.com/
+company = ["AMZN"]  #ticker z https://finance.yahoo.com/
 
 yf.pdr_override()
 df = pdr.get_data_yahoo(company, start, end)  #Stworzenie df z danych 
